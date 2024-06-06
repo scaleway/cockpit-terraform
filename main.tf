@@ -1,3 +1,4 @@
+
 ## Defines the Scaleway Project ID where we will create our resources
 variable "project_id" {
   type        = string
@@ -18,7 +19,7 @@ terraform {
 }
 
 ## Uses the Cockpit that belongs to the Project ID defined above
-resource "scaleway_cockpit" "main" {
+data "scaleway_cockpit" "main" {
   project_id = var.project_id
 }
 
@@ -30,24 +31,24 @@ resource "scaleway_cockpit_grafana_user" "main" {
 }
 
 provider "grafana" {
-  url  = scaleway_cockpit.main.endpoints.0.grafana_url
+  url  = data.scaleway_cockpit.main.endpoints.0.grafana_url
   auth = "${scaleway_cockpit_grafana_user.main.login}:${scaleway_cockpit_grafana_user.main.password}"
 }
 
 ## Creates a Grafana folder in the Grafana user interface
 resource "grafana_folder" "folder_test" {
-  title    = "Test Folder" # Replace with a name of yout choice
+  title = "Test Folder" # Replace with a name of yout choice
 }
 
 ## Creates a push token to query and push metrics in the defined Project
 resource "scaleway_cockpit_token" "main" {
   project_id = var.project_id
-  name       = "your-push-token" # Replace with a name of yout choice
+  name       = "your-token" # Replace with a name of yout choice
   scopes {
     query_metrics = true
     write_metrics = true
-    query_logs = false
-    write_logs = false
+    query_logs    = false
+    write_logs    = false
   }
 }
 
@@ -58,3 +59,14 @@ resource "scaleway_cockpit_source" "main" {
   type       = "metrics"
 }
 
+output "cockpit_url" {
+  value = data.scaleway_cockpit.main.endpoints.0.grafana_url
+}
+
+output "cockpit_user_login" {
+  value = scaleway_cockpit_grafana_user.main.login
+}
+
+output "cockpit_user_password" {
+  value     = nonsensitive(scaleway_cockpit_grafana_user.main.password)
+} 

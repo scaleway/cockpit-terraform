@@ -1,4 +1,3 @@
-
 ## Defines the Scaleway Project ID where we will create our resources
 variable "project_id" {
   type        = string
